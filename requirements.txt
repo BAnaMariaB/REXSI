@@ -1,0 +1,8 @@
+# Superseded by pyproject.toml (use `uv sync`, which installs the dev group too).
+# Kept only for environments without uv:
+pytest
+requests
+psycopg[binary]
+numpy
+pandas
+pyarrow
