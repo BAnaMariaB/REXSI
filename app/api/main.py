@@ -117,7 +117,7 @@ def recommend_popular(k: int = 10):
 
 
 @app.get("/recommend/user/{user_id}")
-def recommend_user(user_id: str, k: int = 10):
+def recommend_user(user_id: str, k: int = 10, mmr_lambda: float | None = None):
     """Logged-in homepage: two-tower retrieval -> LightGBM re-rank.
 
     Unknown users and v0 (models not exported yet) fall back to popularity,
@@ -150,10 +150,11 @@ def recommend_user(user_id: str, k: int = 10):
 
         # Real-time flow: history -> user tower -> FAISS top-100 -> LightGBM -> top-k
         rec_idx, timings = STATE["service"].recommend(
-            user_idx, history, seen, STATE.get("cat_of", {}), k=k)
+            user_idx, history, seen, STATE.get("cat_of", {}), k=k, mmr_lambda=mmr_lambda)
         timings["db_history"] = db_ms
         items = fetch_items(conn, rec_idx)
-        return {"model": "Two-tower + LightGBM", "items": items,
+        label = "Two-tower + LightGBM" + (f" + MMR (λ={mmr_lambda})" if mmr_lambda is not None else "")
+        return {"model": label, "items": items,
                 "timings_ms": {c: round(v, 1) for c, v in timings.items()}}
 
 
