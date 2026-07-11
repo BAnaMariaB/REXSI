@@ -10,7 +10,7 @@ authors = [
     {name = "Nithin Sujith Nair"},
     {name = "Ana-Maria Borduselu"},
 ]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.10,<3.13"
 dependencies = [
     # training / notebooks
     "torch>=2.2",

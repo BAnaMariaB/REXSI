@@ -59,7 +59,8 @@ class RecommenderService:
         self.tower = TwoTower(self.cfg["n_items"], self.cfg["dim"], self.cfg["hidden"],
                               gamma=self.cfg.get("gamma", 1.0))
         self.tower.load_state_dict(
-            torch.load(os.path.join(art_dir, "two_tower.pt"), map_location="cpu"))
+            torch.load(os.path.join(art_dir, "two_tower.pt"), map_location="cpu",
+                       weights_only=True))  # state_dict is plain tensors; silences the pickle warning
         self.tower.eval()
 
         self.index = faiss.read_index(os.path.join(art_dir, "faiss.index"))
