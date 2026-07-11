@@ -125,7 +125,7 @@ class RecommenderService:
 
         t0 = time.perf_counter()
         scores, idx = self.index.search(u, k_retrieve + len(seen) + 10)
-        keep = [(int(i), float(s)) for i, s in zip(idx[0], scores[0]) if i not in seen][:k_retrieve]
+        keep = [(int(i), float(s)) for i, s in zip(idx[0], scores[0]) if i != -1 and i not in seen][:k_retrieve]
         cand = np.array([c[0] for c in keep])
         cscores = np.array([c[1] for c in keep], dtype="float32")
         timings["faiss"] = 1000 * (time.perf_counter() - t0)
