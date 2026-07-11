@@ -21,3 +21,18 @@ venv/
 # NOTE — things that SHOULD be committed (don't add them here):
 #   uv.lock (reproducibility), .python-version, assets/demo.gif,
 #   notebooks with their outputs (the outputs are graded narration)
+
+# editors / IDEs
+.vscode/
+.idea/
+*.swp
+# python tooling caches
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+# env / logs / OS
+.env.*
+*.log
+Thumbs.db

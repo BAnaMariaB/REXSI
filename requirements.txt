@@ -1,8 +1,13 @@
 # Superseded by pyproject.toml (use `uv sync`, which installs the dev group too).
-# Kept only for environments without uv:
+# Kept only for environments without uv; mirrors the pyproject dependencies:
+torch>=2.2
+faiss-cpu>=1.8
+lightgbm>=4.3
+numpy>=1.26
+pandas>=2.2,<3
+pyarrow>=15
+matplotlib>=3.8
+jupyter
+psycopg[binary]>=3.1
 pytest
 requests
-psycopg[binary]
-numpy
-pandas
-pyarrow
