@@ -122,9 +122,9 @@ Single request, `/recommend/user/{id}`, Docker on a MacBook Air (CPU-only servin
 | LightGBM re-rank (100 candidates x 12 features) | 5.9 |
 | **Total model path** | **~15** |
 
-Well under interactive thresholds without a GPU, quantization, or an approximate index. The exact Flat
-index is affordable at this catalog size; IVF would only become necessary at millions of items. The two
-heaviest stages (FAISS, LightGBM) are both trivially batchable if throughput ever mattered.
+That is well under interactive thresholds, on CPU with an exact index. The Flat index is affordable at
+this catalog size; IVF only becomes necessary at millions of items. The two heaviest stages, FAISS and
+LightGBM, are batchable if throughput ever mattered.
 
 ## 5. Limitations
 
