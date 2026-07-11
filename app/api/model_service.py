@@ -112,10 +112,41 @@ class RecommenderService:
         })
         return X[self.features].astype("float32")
 
+    def _mmr_order(self, cand: np.ndarray, preds: np.ndarray,
+                   mmr_lambda: float, k: int) -> list[int]:
+        """Greedy Maximal Marginal Relevance over the ranked candidates (see notebook 06).
+
+        Returns indices into `cand`. lambda=1 -> pure relevance (ranker order);
+        lambda=0 -> pure diversity. Similarity is cosine on the stored item
+        embeddings; relevance is the ranker score min-max normalized per request
+        so it shares the [0, 1] scale with similarity.
+        """
+        rel = (preds - preds.min()) / (preds.max() - preds.min() + 1e-9)
+        emb = self.item_emb[cand].astype("float32")
+        emb = emb / (np.linalg.norm(emb, axis=1, keepdims=True) + 1e-9)
+        sim = emb @ emb.T
+        remaining = list(range(len(cand)))
+        selected: list[int] = []
+        while remaining and len(selected) < k:
+            if not selected:
+                best = max(remaining, key=lambda c: rel[c])
+            else:
+                best = max(remaining, key=lambda c: mmr_lambda * rel[c]
+                           - (1 - mmr_lambda) * sim[c, selected].max())
+            selected.append(best)
+            remaining.remove(best)
+        return selected
+
     def recommend(self, user_idx: int, history: list[int], seen: set[int],
                   cat_of: dict[int, str], k: int = 10, k_retrieve: int = 100,
-                  temperature: float = 0.3, rng=None) -> tuple[list[int], dict]:
-        """history: item_idx chronological (positives). Returns (items, timings_ms)."""
+                  temperature: float = 0.3, rng=None,
+                  mmr_lambda: float | None = None) -> tuple[list[int], dict]:
+        """history: item_idx chronological (positives). Returns (items, timings_ms).
+
+        mmr_lambda: if set, re-rank the LightGBM top candidates with MMR diversity
+        (notebook 06) instead of temperature sampling — deterministic, trades a little
+        relevance for a more varied list. None (default) keeps the original behavior.
+        """
         rng = rng or np.random.default_rng()
         timings = {}
 
@@ -134,6 +165,12 @@ class RecommenderService:
         X = self._feature_matrix(user_idx, history, cand, cscores, cat_of)
         preds = self.booster.predict(X)
         timings["lightgbm"] = 1000 * (time.perf_counter() - t0)
+
+        if mmr_lambda is not None:
+            t0 = time.perf_counter()
+            chosen = self._mmr_order(cand, preds, mmr_lambda, k)
+            timings["mmr"] = 1000 * (time.perf_counter() - t0)
+            return [int(cand[c]) for c in chosen], timings
 
         # Temperature sampling from the top-30 ranked candidates -> recs vary on reload
         order = np.argsort(-preds)[:max(30, k)]
